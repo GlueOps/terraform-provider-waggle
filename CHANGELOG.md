@@ -1,10 +1,11 @@
+## 0.0.7 (June 09, 2026)
+
 ## 0.0.6 (June 09, 2026)
 
 BUG FIXES:
 
 * Send the configured `api_key` as a Bearer token. The client emitted a raw `Authorization: <key>` header, which the API rejected with 401 "missing bearer token".
 * Omit read-only, server-assigned fields (`id`, `created_at`, `updated_at`, ...) from create and update request bodies. They were sent as empty values and the API rejected them with 422 "unexpected property".
-
 ## 0.0.5 (June 09, 2026)
 
 ## 0.0.4 (June 09, 2026)
