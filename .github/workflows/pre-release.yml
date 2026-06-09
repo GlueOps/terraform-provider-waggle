@@ -1,0 +1,86 @@
+name: pre-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionNumber:
+        description: 'Release version number (v#.#.#)'
+        type: string
+        required: true
+
+permissions:
+  contents: write          # create commit on a new branch
+  pull-requests: write     # open PR and enable auto-merge
+
+jobs:
+  prepare-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.out.outputs.version }}
+      tag: ${{ steps.out.outputs.tag }}
+      branch: ${{ steps.out.outputs.branch }}
+      title: ${{ steps.out.outputs.title }}
+      message: ${{ steps.out.outputs.message }}
+    steps:
+      - id: out
+        shell: bash
+        run: |
+          INPUT="${{ inputs.versionNumber }}"
+          if [[ ! "$INPUT" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected versionNumber like v1.2.3; got: $INPUT" >&2
+            exit 1
+          fi
+          VER="${INPUT#v}"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "tag=$INPUT" >> "$GITHUB_OUTPUT"
+          echo "branch=release/changelog-$VER" >> "$GITHUB_OUTPUT"
+          echo "title=chore(release): $INPUT" >> "$GITHUB_OUTPUT"
+          echo "message=chore(release): update changelog for $INPUT" >> "$GITHUB_OUTPUT"
+
+  changelog-pr:
+    needs: prepare-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          # IMPORTANT: stay on the default base branch (e.g., main); do NOT switch branches
+
+      - name: Run Changie - batch
+        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # v2.1.0
+        with:
+          version: latest
+          args: batch ${{ needs.prepare-version.outputs.version }}
+
+      - name: Run Changie - merge
+        uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # v2.1.0
+        with:
+          version: latest
+          args: merge
+
+      # Do NOT create/switch/push a branch here. Let create-pull-request do it.
+
+      - name: Open PR
+        id: cpr
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8
+        with:
+          base: main                                   # ← explicitly target your protected branch
+          branch: "${{ needs.prepare-version.outputs.branch }}"  # ← will be created by the action
+          title: "${{ needs.prepare-version.outputs.title }}"
+          body: |
+            Automated changelog update for **${{ inputs.versionNumber }}**.
+            This PR is set to auto-merge once required checks pass.
+          commit-message: "${{ needs.prepare-version.outputs.message }}"
+          committer: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          labels: "release,automation"
+          signoff: false
+          draft: false
+
+      - name: Enable auto-merge (squash)
+        uses: peter-evans/enable-pull-request-automerge@a660677d5469627102a1c1e11409dd063606628d # v3
+        with:
+          token: ${{ github.token }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
