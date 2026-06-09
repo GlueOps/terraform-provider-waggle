@@ -40,7 +40,6 @@ output "small_slot_id" {
 
 ### Read-Only
 
-- `__schema` (String) A URL to the JSON Schema for this object.
 - `created_at` (String)
 - `id` (String) The ID of this resource.
 - `updated_at` (String)

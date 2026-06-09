@@ -26,6 +26,5 @@ Fetches a pools data source.
 
 ### Read-Only
 
-- `__schema` (String) A URL to the JSON Schema for this object.
 - `id` (String) The ID of this resource.
 - `metadata` (String)

@@ -40,7 +40,6 @@ output "acme" {
 
 ### Read-Only
 
-- `__schema` (String) A URL to the JSON Schema for this object.
 - `created_at` (String)
 - `domain` (String)
 - `id` (String) The ID of this resource.

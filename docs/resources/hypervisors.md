@@ -32,7 +32,6 @@ Manages a hypervisors resource.
 
 ### Read-Only
 
-- `__schema` (String) A URL to the JSON Schema for this object.
 - `cpu_bookable` (Number)
 - `cpu_used` (Number) vCPU allocated to existing guests (from discovery).
 - `created_at` (String)

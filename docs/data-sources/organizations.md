@@ -25,6 +25,5 @@ Fetches a organizations data source.
 
 ### Read-Only
 
-- `__schema` (String) A URL to the JSON Schema for this object.
 - `domain` (String)
 - `id` (String) The ID of this resource.

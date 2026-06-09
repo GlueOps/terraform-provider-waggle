@@ -50,7 +50,6 @@ output "primary_has_token" {
 
 ### Read-Only
 
-- `__schema` (String) A URL to the JSON Schema for this object.
 - `created_at` (String)
 - `has_token` (Boolean) Whether a Proxmox API token is configured (the token itself is never returned).
 - `id` (String) The ID of this resource.
