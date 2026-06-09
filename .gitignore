@@ -12,3 +12,4 @@
 *.tfvars.json
 terraform-provider-waggle
 dist/
+terraform/*
