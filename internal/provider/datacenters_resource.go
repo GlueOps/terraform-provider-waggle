@@ -121,6 +121,10 @@ func (r *DatacentersResource) Read(ctx context.Context, req resource.ReadRequest
 
 	respBody, err := r.client.DoRequest(ctx, "GET", fmt.Sprintf("/datacenters/%v", state.Id.ValueString()), nil)
 	if err != nil {
+		if isNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading datacenters", err.Error())
 		return
 	}

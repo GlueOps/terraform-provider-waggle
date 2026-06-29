@@ -169,6 +169,10 @@ func (r *HypervisorsResource) Read(ctx context.Context, req resource.ReadRequest
 
 	respBody, err := r.client.DoRequest(ctx, "GET", fmt.Sprintf("/hypervisors/%v", state.Id.ValueString()), nil)
 	if err != nil {
+		if isNotFound(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Error reading hypervisors", err.Error())
 		return
 	}
