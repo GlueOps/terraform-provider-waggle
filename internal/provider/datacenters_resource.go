@@ -33,6 +33,11 @@ func (r *DatacentersResource) Schema(_ context.Context, _ resource.SchemaRequest
 	resp.Schema = schema.Schema{
 		Description: "Manages a datacenters resource.",
 		Attributes: map[string]schema.Attribute{
+			"cpu_overcommit_ratio": schema.Float64Attribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Default vCPU sold per physical core, stamped onto hypervisors as they are discovered here. 1.0 is no overcommit. Changing it does not re-rate existing hypervisors.",
+			},
 			"created_at": schema.StringAttribute{
 				Computed:    true,
 				Description: "",

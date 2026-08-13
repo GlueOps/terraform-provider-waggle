@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/glueops/terraform-provider-waggle/internal/client"
@@ -38,8 +41,9 @@ func (r *PoolsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description: "",
 			},
 			"datacenter_id": schema.StringAttribute{
-				Required:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
+				Description:   "",
 			},
 			"desired_count": schema.Int64Attribute{
 				Required:    true,
@@ -50,16 +54,20 @@ func (r *PoolsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description: "",
 			},
 			"metadata": schema.StringAttribute{
-				Optional:    true,
-				Description: "",
+				CustomType:    jsontypes.NormalizedType{},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional:      true,
+				Description:   "",
 			},
 			"name": schema.StringAttribute{
-				Required:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
+				Description:   "",
 			},
 			"slot_id": schema.StringAttribute{
-				Required:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
+				Description:   "",
 			},
 			"updated_at": schema.StringAttribute{
 				Computed:    true,

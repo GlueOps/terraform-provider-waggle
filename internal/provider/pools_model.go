@@ -2,6 +2,9 @@
 package provider
 
 import (
+	"encoding/json"
+
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/glueops/terraform-provider-waggle/internal/client"
@@ -9,14 +12,14 @@ import (
 
 // PoolsModel is the Terraform model for pools.
 type PoolsModel struct {
-	CreatedAt    types.String `tfsdk:"created_at"`
-	DatacenterId types.String `tfsdk:"datacenter_id"`
-	DesiredCount types.Int64  `tfsdk:"desired_count"`
-	Id           types.String `tfsdk:"id"`
-	Metadata     types.String `tfsdk:"metadata"`
-	Name         types.String `tfsdk:"name"`
-	SlotId       types.String `tfsdk:"slot_id"`
-	UpdatedAt    types.String `tfsdk:"updated_at"`
+	CreatedAt    types.String         `tfsdk:"created_at"`
+	DatacenterId types.String         `tfsdk:"datacenter_id"`
+	DesiredCount types.Int64          `tfsdk:"desired_count"`
+	Id           types.String         `tfsdk:"id"`
+	Metadata     jsontypes.Normalized `tfsdk:"metadata"`
+	Name         types.String         `tfsdk:"name"`
+	SlotId       types.String         `tfsdk:"slot_id"`
+	UpdatedAt    types.String         `tfsdk:"updated_at"`
 }
 
 // ToClientModel converts a Terraform model to a client model.
@@ -43,6 +46,10 @@ func (m *PoolsModel) ToClientModel() *client.PoolView {
 	if !m.UpdatedAt.IsNull() && !m.UpdatedAt.IsUnknown() {
 		out.UpdatedAt = m.UpdatedAt.ValueString()
 	}
+	if !m.Metadata.IsNull() && !m.Metadata.IsUnknown() {
+		// json.RawMessage marshals through the interface{} field verbatim.
+		out.Metadata = json.RawMessage(m.Metadata.ValueString())
+	}
 	return out
 }
 
@@ -55,4 +62,10 @@ func (m *PoolsModel) FromClientModel(c *client.PoolView) {
 	m.Name = types.StringValue(c.Name)
 	m.SlotId = types.StringValue(c.SlotId)
 	m.UpdatedAt = types.StringValue(c.UpdatedAt)
+	m.Metadata = jsontypes.NewNormalizedNull()
+	if c.Metadata != nil {
+		if b, err := json.Marshal(c.Metadata); err == nil {
+			m.Metadata = jsontypes.NewNormalizedValue(string(b))
+		}
+	}
 }
