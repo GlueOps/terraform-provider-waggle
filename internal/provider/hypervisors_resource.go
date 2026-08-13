@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/glueops/terraform-provider-waggle/internal/client"
@@ -35,7 +37,16 @@ func (r *HypervisorsResource) Schema(_ context.Context, _ resource.SchemaRequest
 		Attributes: map[string]schema.Attribute{
 			"cpu_bookable": schema.Int64Attribute{
 				Computed:    true,
-				Description: "",
+				Description: "cpu_effective_total minus reserved, existing-guest, and Waggle-committed vCPU.",
+			},
+			"cpu_effective_total": schema.Int64Attribute{
+				Computed:    true,
+				Description: "Schedulable vCPU pool: cpu_total x cpu_overcommit_ratio, rounded down.",
+			},
+			"cpu_overcommit_ratio": schema.Float64Attribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "vCPU sold per physical core on this node. 1.0 is no overcommit.",
 			},
 			"cpu_reserved": schema.Int64Attribute{
 				Required:    true,
@@ -43,15 +54,16 @@ func (r *HypervisorsResource) Schema(_ context.Context, _ resource.SchemaRequest
 			},
 			"cpu_total": schema.Int64Attribute{
 				Required:    true,
-				Description: "",
+				Description: "Physical cores on the node.",
 			},
 			"cpu_used": schema.Int64Attribute{
 				Computed:    true,
 				Description: "vCPU allocated to existing guests (from discovery).",
 			},
 			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"datacenter_id": schema.StringAttribute{
 				Required:    true,
@@ -74,8 +86,9 @@ func (r *HypervisorsResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Description: "Disk (GB) allocated to existing guests (from discovery).",
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"last_synced_at": schema.StringAttribute{
 				Computed:    true,
@@ -190,15 +203,17 @@ func (r *HypervisorsResource) Read(ctx context.Context, req resource.ReadRequest
 
 func (r *HypervisorsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan HypervisorsModel
+	var state HypervisorsModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	reqBody := plan.ToClientModel()
 
-	respBody, err := r.client.DoRequest(ctx, "PUT", fmt.Sprintf("/hypervisors/%v", plan.Id.ValueString()), reqBody)
+	respBody, err := r.client.DoRequest(ctx, "PUT", fmt.Sprintf("/hypervisors/%v", state.Id.ValueString()), reqBody)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating hypervisors", err.Error())
 		return

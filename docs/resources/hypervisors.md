@@ -18,7 +18,7 @@ Manages a hypervisors resource.
 ### Required
 
 - `cpu_reserved` (Number)
-- `cpu_total` (Number)
+- `cpu_total` (Number) Physical cores on the node.
 - `datacenter_id` (String)
 - `disk_gb_reserved` (Number)
 - `disk_gb_total` (Number)
@@ -28,11 +28,13 @@ Manages a hypervisors resource.
 
 ### Optional
 
+- `cpu_overcommit_ratio` (Number) vCPU sold per physical core on this node. 1.0 is no overcommit.
 - `schedulable` (Boolean) When false, placement excludes this hypervisor.
 
 ### Read-Only
 
-- `cpu_bookable` (Number)
+- `cpu_bookable` (Number) cpu_effective_total minus reserved, existing-guest, and Waggle-committed vCPU.
+- `cpu_effective_total` (Number) Schedulable vCPU pool: cpu_total x cpu_overcommit_ratio, rounded down.
 - `cpu_used` (Number) vCPU allocated to existing guests (from discovery).
 - `created_at` (String)
 - `disk_gb_bookable` (Number)

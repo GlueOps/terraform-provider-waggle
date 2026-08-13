@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: '`waggle_pools`: `datacenter_id`, `name`, `slot_id` and `metadata` now force replacement. The API binds only `desired_count` on `PATCH /pools/{id}`, so changing any of the others planned an in-place update the provider could not perform and apply failed with "Provider produced inconsistent result after apply".'
+time: 2026-08-13T10:45:14.765764+01:00
+custom:
+    Issue: "45"

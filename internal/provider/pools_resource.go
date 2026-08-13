@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/glueops/terraform-provider-waggle/internal/client"
@@ -34,32 +37,39 @@ func (r *PoolsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 		Description: "Manages a pools resource.",
 		Attributes: map[string]schema.Attribute{
 			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"datacenter_id": schema.StringAttribute{
-				Required:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
+				Description:   "",
 			},
 			"desired_count": schema.Int64Attribute{
 				Required:    true,
 				Description: "",
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"metadata": schema.StringAttribute{
-				Optional:    true,
-				Description: "",
+				CustomType:    jsontypes.NormalizedType{},
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Optional:      true,
+				Description:   "",
 			},
 			"name": schema.StringAttribute{
-				Required:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
+				Description:   "",
 			},
 			"slot_id": schema.StringAttribute{
-				Required:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+				Required:      true,
+				Description:   "",
 			},
 			"updated_at": schema.StringAttribute{
 				Computed:    true,
@@ -153,10 +163,9 @@ func (r *PoolsResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	// Resize endpoint only accepts desired_count — not the full pool body.
+	// The resize endpoint only accepts desired_count, not the full pool body.
 	resizeBody := map[string]int64{"desired_count": plan.DesiredCount.ValueInt64()}
 
-	// Use state.Id (known current value) not plan.Id (unknown during update).
 	respBody, err := r.client.DoRequest(ctx, "PATCH", fmt.Sprintf("/pools/%v", state.Id.ValueString()), resizeBody)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating pools", err.Error())

@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: '`waggle_datacenters`, `waggle_hypervisors`, `waggle_organizations` and `waggle_slots`: build the update request URL from state rather than the plan. A computed `id` is not guaranteed known during an update, and an unknown one collapsed the path to `/datacenters/`, which the API answers with an HTML 404 that surfaced as an unintelligible parse error.'
+time: 2026-08-13T10:45:23.000000+01:00
+custom:
+    Issue: "45"

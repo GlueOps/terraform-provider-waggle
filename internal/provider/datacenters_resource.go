@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/glueops/terraform-provider-waggle/internal/client"
@@ -33,17 +35,24 @@ func (r *DatacentersResource) Schema(_ context.Context, _ resource.SchemaRequest
 	resp.Schema = schema.Schema{
 		Description: "Manages a datacenters resource.",
 		Attributes: map[string]schema.Attribute{
-			"created_at": schema.StringAttribute{
+			"cpu_overcommit_ratio": schema.Float64Attribute{
+				Optional:    true,
 				Computed:    true,
-				Description: "",
+				Description: "Default vCPU sold per physical core, stamped onto hypervisors as they are discovered here. 1.0 is no overcommit. Changing it does not re-rate existing hypervisors.",
+			},
+			"created_at": schema.StringAttribute{
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"has_token": schema.BoolAttribute{
 				Computed:    true,
 				Description: "Whether a Proxmox API token is configured (the token itself is never returned).",
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"insecure_skip_verify": schema.BoolAttribute{
 				Optional:    true,
@@ -142,15 +151,17 @@ func (r *DatacentersResource) Read(ctx context.Context, req resource.ReadRequest
 
 func (r *DatacentersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan DatacentersModel
+	var state DatacentersModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	reqBody := plan.ToClientModel()
 
-	respBody, err := r.client.DoRequest(ctx, "PUT", fmt.Sprintf("/datacenters/%v", plan.Id.ValueString()), reqBody)
+	respBody, err := r.client.DoRequest(ctx, "PUT", fmt.Sprintf("/datacenters/%v", state.Id.ValueString()), reqBody)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating datacenters", err.Error())
 		return
