@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/glueops/terraform-provider-waggle/internal/client"
@@ -34,16 +36,18 @@ func (r *OrganizationsResource) Schema(_ context.Context, _ resource.SchemaReque
 		Description: "Manages a organizations resource.",
 		Attributes: map[string]schema.Attribute{
 			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"domain": schema.StringAttribute{
 				Computed:    true,
 				Description: "",
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
@@ -141,15 +145,17 @@ func (r *OrganizationsResource) Read(ctx context.Context, req resource.ReadReque
 
 func (r *OrganizationsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan OrganizationsModel
+	var state OrganizationsModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	reqBody := plan.ToClientModel()
 
-	respBody, err := r.client.DoRequest(ctx, "PATCH", fmt.Sprintf("/organizations/%v", plan.Id.ValueString()), reqBody)
+	respBody, err := r.client.DoRequest(ctx, "PATCH", fmt.Sprintf("/organizations/%v", state.Id.ValueString()), reqBody)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating organizations", err.Error())
 		return

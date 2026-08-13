@@ -37,8 +37,9 @@ func (r *PoolsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 		Description: "Manages a pools resource.",
 		Attributes: map[string]schema.Attribute{
 			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"datacenter_id": schema.StringAttribute{
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
@@ -50,8 +51,9 @@ func (r *PoolsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description: "",
 			},
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
+				Computed:      true,
+				Description:   "",
 			},
 			"metadata": schema.StringAttribute{
 				CustomType:    jsontypes.NormalizedType{},
@@ -161,10 +163,9 @@ func (r *PoolsResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	// Resize endpoint only accepts desired_count — not the full pool body.
+	// The resize endpoint only accepts desired_count, not the full pool body.
 	resizeBody := map[string]int64{"desired_count": plan.DesiredCount.ValueInt64()}
 
-	// Use state.Id (known current value) not plan.Id (unknown during update).
 	respBody, err := r.client.DoRequest(ctx, "PATCH", fmt.Sprintf("/pools/%v", state.Id.ValueString()), resizeBody)
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating pools", err.Error())
