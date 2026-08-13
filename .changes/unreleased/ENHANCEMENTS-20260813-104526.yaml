@@ -1,5 +1,0 @@
-kind: ENHANCEMENTS
-body: '`id` and `created_at` no longer show as "(known after apply)" when an unrelated attribute changes. They are server-assigned and fixed for the life of the resource, so the plan now carries the prior value forward.'
-time: 2026-08-13T10:45:26.593767+01:00
-custom:
-    Issue: "45"
