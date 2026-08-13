@@ -17,9 +17,11 @@ Fetches a hypervisors data source.
 
 ### Required
 
-- `cpu_bookable` (Number)
+- `cpu_bookable` (Number) cpu_effective_total minus reserved, existing-guest, and Waggle-committed vCPU.
+- `cpu_effective_total` (Number) Schedulable vCPU pool: cpu_total x cpu_overcommit_ratio, rounded down.
+- `cpu_overcommit_ratio` (Number) vCPU sold per physical core on this node. 1.0 is no overcommit.
 - `cpu_reserved` (Number)
-- `cpu_total` (Number)
+- `cpu_total` (Number) Physical cores on the node.
 - `cpu_used` (Number) vCPU allocated to existing guests (from discovery).
 - `created_at` (String)
 - `datacenter_id` (String)

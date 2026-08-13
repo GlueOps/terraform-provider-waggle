@@ -46,6 +46,7 @@ output "primary_has_token" {
 
 ### Optional
 
+- `cpu_overcommit_ratio` (Number) Default vCPU sold per physical core, stamped onto hypervisors as they are discovered here. 1.0 is no overcommit. Changing it does not re-rate existing hypervisors.
 - `insecure_skip_verify` (Boolean) Whether TLS verification is disabled for this cluster (self-signed certs).
 
 ### Read-Only
