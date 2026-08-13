@@ -1,5 +1,0 @@
-kind: NOTES
-body: The provider is generated from the [waggle](https://github.com/GlueOps/waggle) repository and everything under `internal/` carries a `DO NOT EDIT` header. Fixes belong in that repo's generator passes or overlays; edits made here are reverted by the next regeneration.
-time: 2026-08-13T10:45:26.601061+01:00
-custom:
-    Issue: "45"

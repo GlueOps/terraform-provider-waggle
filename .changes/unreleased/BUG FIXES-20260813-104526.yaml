@@ -1,5 +1,0 @@
-kind: BUG FIXES
-body: '`waggle_pools`: `metadata` is now sent on create and refreshed on read. It was advertised in the schema and the examples but mapped in neither direction, so input was silently discarded while Terraform reported success. It is typed as normalized JSON, so key ordering and whitespace no longer produce a diff.'
-time: 2026-08-13T10:45:26.586217+01:00
-custom:
-    Issue: "45"

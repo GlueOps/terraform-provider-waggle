@@ -1,5 +1,0 @@
-kind: BUG FIXES
-body: '`waggle_placements`: `placement_id` now forces replacement. Adopting a different placement is a different resource; the only write the API accepts there is the vmid backfill.'
-time: 2026-08-13T10:45:20.000000+01:00
-custom:
-    Issue: "45"
